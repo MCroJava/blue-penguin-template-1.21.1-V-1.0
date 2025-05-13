@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "bluepenguinmod",
+	"version": "${version}",
+	"name": "Blue Penguin",
+	"description": "Adds Little Blue penguins to Minecraft for 12DigitalMedia",
+	"authors": [
+		"Miller Crooks"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/bluepenguinmod/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.miller.bluepenguinmod.BluePenguin"
+		],
+		"fabric-datagen": [
+			"net.miller.bluepenguinmod.BluePenguinDataGenerator"
+		],
+		"Client": [
+			"net.miller.bluepenguinmod.BluePenguinClient"
+		]
+	},
+	"mixins": [
+		"bluepenguinmod.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
