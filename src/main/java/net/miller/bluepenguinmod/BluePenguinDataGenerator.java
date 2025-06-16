@@ -11,6 +11,5 @@ public class BluePenguinDataGenerator implements DataGeneratorEntrypoint {
  		FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
 
 		 pack.addProvider(ModBlockTagProvider::new);
-		 pack.addProvider(ModItemTagProvider::new);
 	}
 }
