@@ -12,10 +12,11 @@ import net.minecraft.world.biome.BiomeKeys;
 
 public class ModEntitySpawns {
     public static void addSpawns() {
-        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(BiomeKeys.BEACH, BiomeKeys.STONY_SHORE, BiomeKeys.SNOWY_BEACH),
-                SpawnGroup.CREATURE, ModEntities.BLUE_PENGUIN, 300, 1, 4);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(BiomeKeys.PLAINS, BiomeKeys.BEACH, BiomeKeys.STONY_SHORE, BiomeKeys.SNOWY_BEACH),
+                SpawnGroup.CREATURE, ModEntities.BLUE_PENGUIN, 30, 1, 4);
 
         SpawnRestriction.register(ModEntities.BLUE_PENGUIN, SpawnLocationTypes.ON_GROUND,
-                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, AnimalEntity::isValidNaturalSpawn);
+                Heightmap.Type.WORLD_SURFACE, AnimalEntity::isValidNaturalSpawn);
+
     }
 }
