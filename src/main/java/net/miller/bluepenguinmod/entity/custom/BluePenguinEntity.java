@@ -9,6 +9,7 @@ import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.ai.pathing.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -22,6 +23,10 @@ import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -56,10 +61,47 @@ public class BluePenguinEntity extends AnimalEntity {
         return ModEntities.BLUE_PENGUIN.create(world);
     }
 
+    // Override the feeding method to trigger happy animation when fed cod
+    @Override
+    public ActionResult interactMob(PlayerEntity player, Hand hand) {
+        ItemStack itemStack = player.getStackInHand(hand);
+
+        if (itemStack.isOf(Items.COD)) {
+            if (this.canEat() || (this.getBreedingAge() == 0 && !this.isInLove())) {
+
+                // Set animation on BOTH client and server
+                this.happyAnimationTimeout = 60;
+
+                // Only do game logic on server
+                if (!this.getWorld().isClient) {
+                    if (!player.getAbilities().creativeMode) {
+                        itemStack.decrement(1);
+                    }
+                    this.heal(2.0F);
+
+                    if (this.isBaby()) {
+                        this.growUp((int)(-this.getBreedingAge() * 0.1F), true);
+                    } else if (this.getBreedingAge() == 0) {
+                        this.lovePlayer(player);
+                    }
+                }
+
+                return ActionResult.success(this.getWorld().isClient);
+            }
+        }
+        return super.interactMob(player, hand);
+    }
+
+    // Helper method to check if penguin can eat
+    @Override
+    public boolean canEat() {
+        return this.getHealth() < this.getMaxHealth() || this.isBaby() || this.getBreedingAge() == 0;
+    }
+
     @Override
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new AnimalMateGoal(this, 1.0));
+        this.goalSelector.add(1, new AnimalMateGoal(this, 1.0D));
         this.goalSelector.add(2, new TemptGoal(this, 1.25, Ingredient.ofItems(Items.COD), false));
         this.goalSelector.add(3, new FollowParentGoal(this, 1.25));
         this.goalSelector.add(4, new HuntCodGoal(this)); // Hunt cod in water
@@ -69,6 +111,34 @@ public class BluePenguinEntity extends AnimalEntity {
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0)); // Fallback wandering
         this.goalSelector.add(9, new LookAtEntityGoal(this, PlayerEntity.class, 6.0f));
         this.goalSelector.add(10, new LookAroundGoal(this));
+
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.ENTITY_PARROT_AMBIENT;
+    }
+    @Override
+    protected @Nullable SoundEvent getHurtSound(DamageSource source) {
+        return SoundEvents.ENTITY_FOX_HURT;
+    }
+    @Override
+    protected @Nullable SoundEvent getDeathSound() {
+        return SoundEvents.ENTITY_PARROT_DEATH;
+    }
+    @Override
+    protected SoundEvent getSwimSound() {
+        return SoundEvents.ENTITY_DOLPHIN_SWIM;
+    }
+
+    @Override
+    public SoundEvent getEatSound(ItemStack stack) {
+        return SoundEvents.ENTITY_FOX_EAT;
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        this.playSound(SoundEvents.ENTITY_COD_FLOP, 0.15f, 1.0f);
     }
 
     // New goal to hunt cod
@@ -343,6 +413,7 @@ public class BluePenguinEntity extends AnimalEntity {
     private void setupAnimationStates() {
         // Handle happy animation first (priority)
         if (this.happyAnimationTimeout > 0) {
+            System.out.println("Happy animation timeout: " + this.happyAnimationTimeout);
             --this.happyAnimationTimeout;
             this.happyAnimationState.startIfNotRunning(this.age);
             // Stop other animations while happy
@@ -487,6 +558,4 @@ public class BluePenguinEntity extends AnimalEntity {
             this.setAir(this.getMaxAir());
         }
     }
-
-
 }

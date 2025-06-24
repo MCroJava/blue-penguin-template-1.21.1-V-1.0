@@ -103,6 +103,9 @@ public class BluePenguinModel<T extends BluePenguinEntity> extends SinglePartEnt
     public void setAngles(BluePenguinEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.getPart().traverse().forEach(ModelPart::resetTransform);
         this.setHeadAngles(netHeadYaw, headPitch);
+
+        this.updateAnimation(entity.happyAnimationState, BluePenguinAnimations.ANIM_BLUEPENGUIN_HAPPY, ageInTicks, 1f);
+
         if(entity.isTouchingWater()) {
             this.animateMovement(BluePenguinAnimations.ANIM_BLUEPENGUIN_SWIMMING, limbSwing, limbSwingAmount, 1.5f, 2.0f);
         } else {

@@ -23,7 +23,7 @@ public class ModItems {
     public static void registerModItems() {
         BluePenguin.LOGGER.info("Registering Mod Items for " + BluePenguin.MOD_ID);
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
             entries.add(BLUE_PENGUIN_SPAWN_EGG);});
     }
 }
