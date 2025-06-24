@@ -19,5 +19,4 @@ public class BluePenguin implements ModInitializer {
 		FabricDefaultAttributeRegistry.register(ModEntities.BLUE_PENGUIN, BluePenguinEntity.createAttributes());
 		ModEntitySpawns.addSpawns();
 	}
-//ignore
 }

@@ -7,7 +7,6 @@ import net.miller.bluepenguinmod.entity.ModEntities;
 import net.miller.bluepenguinmod.entity.client.BluePenguinModel;
 import net.miller.bluepenguinmod.entity.client.BluePenguinRenderer;
 import net.miller.bluepenguinmod.item.ModItems;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
 
 public class BluePenguinClient implements ClientModInitializer {
     @Override

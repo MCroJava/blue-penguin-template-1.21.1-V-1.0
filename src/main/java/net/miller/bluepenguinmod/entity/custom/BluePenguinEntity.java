@@ -40,7 +40,6 @@ public class BluePenguinEntity extends AnimalEntity {
     private int idleAnimationTimeout = 0;
     private int happyAnimationTimeout = 0;
 
-    // Define the data tracker parameter properly
     private static final TrackedData<Boolean> IS_SWIMMING = DataTracker.registerData(BluePenguinEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     public BluePenguinEntity(EntityType<? extends AnimalEntity> entityType, World world) {
@@ -61,7 +60,6 @@ public class BluePenguinEntity extends AnimalEntity {
         return ModEntities.BLUE_PENGUIN.create(world);
     }
 
-    // Override the feeding method to trigger happy animation when fed cod
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
         ItemStack itemStack = player.getStackInHand(hand);
@@ -69,10 +67,8 @@ public class BluePenguinEntity extends AnimalEntity {
         if (itemStack.isOf(Items.COD)) {
             if (this.canEat() || (this.getBreedingAge() == 0 && !this.isInLove())) {
 
-                // Set animation on BOTH client and server
                 this.happyAnimationTimeout = 60;
 
-                // Only do game logic on server
                 if (!this.getWorld().isClient) {
                     if (!player.getAbilities().creativeMode) {
                         itemStack.decrement(1);
@@ -92,7 +88,6 @@ public class BluePenguinEntity extends AnimalEntity {
         return super.interactMob(player, hand);
     }
 
-    // Helper method to check if penguin can eat
     @Override
     public boolean canEat() {
         return this.getHealth() < this.getMaxHealth() || this.isBaby() || this.getBreedingAge() == 0;
@@ -141,7 +136,6 @@ public class BluePenguinEntity extends AnimalEntity {
         this.playSound(SoundEvents.ENTITY_COD_FLOP, 0.15f, 1.0f);
     }
 
-    // New goal to hunt cod
     private static class HuntCodGoal extends Goal {
         private final BluePenguinEntity penguin;
         private LivingEntity target;
@@ -192,13 +186,12 @@ public class BluePenguinEntity extends AnimalEntity {
 
             double distance = this.penguin.squaredDistanceTo(this.target);
 
-            if (distance < 4.0) { // Close enough to attack
+            if (distance < 2.0) {
                 if (this.attackDelay <= 0) {
                     this.penguin.tryAttack(this.target);
-                    this.attackDelay = 20; // 1 second cooldown
+                    this.attackDelay = 20;
                 }
             } else {
-                // Move towards the cod
                 this.penguin.getNavigation().startMovingTo(this.target, 1.2);
             }
 
@@ -220,7 +213,6 @@ public class BluePenguinEntity extends AnimalEntity {
         }
     }
 
-    // Goal to seek water when on land
     private static class SeekWaterGoal extends Goal {
         private final BluePenguinEntity penguin;
         private BlockPos targetPos;
@@ -272,7 +264,6 @@ public class BluePenguinEntity extends AnimalEntity {
         }
     }
 
-    // Updated goal to swim around in water including underwater
     private static class SwimAroundGoal extends Goal {
         private final BluePenguinEntity penguin;
         private BlockPos targetPos;
@@ -311,7 +302,6 @@ public class BluePenguinEntity extends AnimalEntity {
         public void tick() {
             this.timer--;
 
-            // If reached target or navigation failed, find new target
             if (this.penguin.getNavigation().isIdle() ||
                     (this.targetPos != null && this.penguin.squaredDistanceTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ()) < 4.0)) {
                 this.targetPos = this.findSwimTarget();
@@ -329,13 +319,10 @@ public class BluePenguinEntity extends AnimalEntity {
                 int x = penguinPos.getX() + this.penguin.getRandom().nextInt(16) - 8;
                 int z = penguinPos.getZ() + this.penguin.getRandom().nextInt(16) - 8;
 
-                // Enhanced Y calculation for better underwater swimming
                 int y;
                 if (this.preferUnderwater) {
-                    // Prefer deeper water
                     y = penguinPos.getY() - this.penguin.getRandom().nextInt(6) - 1;
                 } else {
-                    // Allow both surface and underwater
                     y = penguinPos.getY() + this.penguin.getRandom().nextInt(8) - 4;
                 }
 
@@ -348,7 +335,6 @@ public class BluePenguinEntity extends AnimalEntity {
         }
     }
 
-    // Goal to occasionally go to land from water
     private static class GoToLandGoal extends Goal {
         private final BluePenguinEntity penguin;
         private BlockPos targetPos;
@@ -361,7 +347,7 @@ public class BluePenguinEntity extends AnimalEntity {
         @Override
         public boolean canStart() {
             return this.penguin.isTouchingWater() &&
-                    this.penguin.getRandom().nextInt(300) == 0; // Rare chance to go to land
+                    this.penguin.getRandom().nextInt(300) == 0;
         }
 
         @Override
@@ -387,15 +373,13 @@ public class BluePenguinEntity extends AnimalEntity {
                 int x = penguinPos.getX() + this.penguin.getRandom().nextInt(20) - 10;
                 int z = penguinPos.getZ() + this.penguin.getRandom().nextInt(20) - 10;
 
-                // Find the surface level
                 for (int y = world.getSeaLevel() + 10; y >= world.getBottomY(); y--) {
                     BlockPos checkPos = new BlockPos(x, y, z);
 
-                    // Check if this is a solid block with air above it
                     if (world.getBlockState(checkPos).isSolidBlock(world, checkPos) &&
                             world.getBlockState(checkPos.up()).isAir() &&
                             !world.getBlockState(checkPos).getFluidState().isIn(FluidTags.WATER)) {
-                        return checkPos.up(); // Return the air block above the solid block
+                        return checkPos.up();
                     }
                 }
             }
@@ -407,23 +391,21 @@ public class BluePenguinEntity extends AnimalEntity {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 10)
                 .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.15)
-                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 4); // Reduced from 10 to be more reasonable
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 4);
     }
 
     private void setupAnimationStates() {
-        // Handle happy animation first (priority)
         if (this.happyAnimationTimeout > 0) {
             System.out.println("Happy animation timeout: " + this.happyAnimationTimeout);
             --this.happyAnimationTimeout;
             this.happyAnimationState.startIfNotRunning(this.age);
-            // Stop other animations while happy
+
             this.idleAnimationState.stop();
             return;
         } else {
             this.happyAnimationState.stop();
         }
 
-        // Only play idle animation when not moving and not in water
         if (this.getVelocity().horizontalLengthSquared() < 0.01 && !this.isTouchingWater()) {
             if(this.idleAnimationTimeout <= 0) {
                 this.idleAnimationTimeout = 100;
@@ -432,7 +414,6 @@ public class BluePenguinEntity extends AnimalEntity {
                 --this.idleAnimationTimeout;
             }
         } else {
-            // Stop idle animation when moving or swimming
             this.idleAnimationState.stop();
             this.idleAnimationTimeout = 0;
         }
@@ -465,24 +446,20 @@ public class BluePenguinEntity extends AnimalEntity {
     @Override
     public void travel(Vec3d movementInput) {
         if (this.canMoveVoluntarily() && this.isTouchingWater()) {
-            // Improved underwater movement with proper 3D navigation
             this.updateVelocity(0.2f, movementInput);
             this.move(MovementType.SELF, this.getVelocity());
             this.setVelocity(this.getVelocity().multiply(0.8));
 
-            // Force underwater movement when navigation is active
             if (!this.getNavigation().isIdle()) {
                 BlockPos targetBlockPos = this.getNavigation().getTargetPos();
                 if (targetBlockPos != null) {
                     Vec3d targetPos = Vec3d.ofCenter(targetBlockPos);
                     Vec3d currentPos = this.getPos();
 
-                    // Calculate direction to target including Y component
                     Vec3d direction = targetPos.subtract(currentPos).normalize();
                     double distance = currentPos.distanceTo(targetPos);
 
                     if (distance > 1.0) {
-                        // Apply movement in all 3 dimensions
                         Vec3d velocity = this.getVelocity();
                         double speed = 0.05;
 
@@ -494,7 +471,6 @@ public class BluePenguinEntity extends AnimalEntity {
                     }
                 }
             } else {
-                // Random underwater movement when idle
                 if (this.getRandom().nextInt(100) == 0) {
                     Vec3d randomVel = new Vec3d(
                             (this.getRandom().nextDouble() - 0.5) * 0.1,
@@ -509,13 +485,11 @@ public class BluePenguinEntity extends AnimalEntity {
         }
     }
 
-    // Add navigation capabilities for water and land
     @Override
     protected EntityNavigation createNavigation(World world) {
         return new AmphibiousNavigation(this, world);
     }
 
-    // Custom navigation class that handles both water and land
     private static class AmphibiousNavigation extends MobNavigation {
         public AmphibiousNavigation(MobEntity entity, World world) {
             super(entity, world);
@@ -530,13 +504,11 @@ public class BluePenguinEntity extends AnimalEntity {
 
         @Override
         protected boolean canPathDirectlyThrough(Vec3d origin, Vec3d target) {
-            // Allow direct pathing through water and air
             return true;
         }
 
         @Override
         public boolean isValidPosition(BlockPos pos) {
-            // Allow both water and solid blocks as valid positions
             BlockState state = this.world.getBlockState(pos);
             return !state.isOf(Blocks.LAVA) &&
                     (state.getFluidState().isIn(FluidTags.WATER) ||
@@ -546,14 +518,12 @@ public class BluePenguinEntity extends AnimalEntity {
 
     @Override
     public boolean isPushedByFluids() {
-        return false; // Prevents water from pushing the penguin around
+        return false;
     }
 
-    // Override air management to prevent drowning
     @Override
     public void baseTick() {
         super.baseTick();
-        // Keep air at maximum when in water to prevent drowning
         if (this.isTouchingWater()) {
             this.setAir(this.getMaxAir());
         }
